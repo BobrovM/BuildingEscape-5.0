@@ -26,7 +26,7 @@ protected:
 
 private:
 	//Reach distance
-	float Reach = 100.f;
+	float Reach = 150.f;
 
 	//nullptr to protect from crashing
 	UPhysicsHandleComponent* PhysicsHandle = nullptr;
@@ -40,4 +40,6 @@ private:
 
 	//return the first actor within reach
 	FHitResult GetFirstActorBodyInReach() const;
+	FVector GetReachEnd() const;
+	FVector GetPlayerWorldPosition() const;
 };

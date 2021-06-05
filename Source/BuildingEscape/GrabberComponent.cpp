@@ -15,7 +15,6 @@ UGrabberComponent::UGrabberComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-
 // Called when the game starts
 void UGrabberComponent::BeginPlay()
 {
@@ -36,44 +35,18 @@ void UGrabberComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	if (PhysicsHandle->GrabbedComponent)
 	{
 		//Move the object we are holding
-		//TODO refactor LineTrace 3  (filthy code!!!!!!)
-		FVector PlayerViewPointLocation;
-		FRotator PlayerViewPointRotation;
-
-		GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint
-		(
-			OUT PlayerViewPointLocation,
-			OUT PlayerViewPointRotation
-		);
-
-		FVector LineTraceEnd = PlayerViewPointLocation + Reach * PlayerViewPointRotation.Vector();
-
 		PhysicsHandle->SetTargetLocation
 		(
-			LineTraceEnd
+			GetReachEnd()
 		);
 	}
 }
 
 void UGrabberComponent::Grab()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Grabber grabed"));
-
 	//If it hits something, attach a physics handle to it
 	FHitResult HitResult = GetFirstActorBodyInReach();
 	UPrimitiveComponent* ComponentToGrab = HitResult.GetComponent();
-
-	//TODO refactor LineTrace 2
-	FVector PlayerViewPointLocation;
-	FRotator PlayerViewPointRotation;
-
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint
-	(
-		OUT PlayerViewPointLocation,
-		OUT PlayerViewPointRotation
-	);
-
-	FVector LineTraceEnd = PlayerViewPointLocation + Reach * PlayerViewPointRotation.Vector();
 
 	if (HitResult.GetActor())
 	{
@@ -81,14 +54,13 @@ void UGrabberComponent::Grab()
 		(
 			ComponentToGrab,
 			NAME_None,
-			LineTraceEnd
+			GetReachEnd()
 		);
 	}
 }
 
 void UGrabberComponent::Release()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Grabber released"));
 	PhysicsHandle->ReleaseComponent();
 }
 
@@ -112,25 +84,11 @@ void UGrabberComponent::SetUpInputComponent()
 
 FHitResult UGrabberComponent::GetFirstActorBodyInReach() const
 {
-
-	// Get player's viewpoint
-	//TODO refactor LineTraceCode1
-	FVector PlayerViewPointLocation;
-	FRotator PlayerViewPointRotation;
-
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint
-	(
-		OUT PlayerViewPointLocation,
-		OUT PlayerViewPointRotation
-	);
-
-	FVector LineTraceEnd = PlayerViewPointLocation + Reach * PlayerViewPointRotation.Vector();
-
 	// Draw a line from player, make it to be able to turn on/off
 	DrawDebugLine(
 		GetWorld(),
-		PlayerViewPointLocation,
-		LineTraceEnd,
+		GetPlayerWorldPosition(),
+		GetReachEnd(),
 		FColor(0, 0, 255),
 		false,
 		5.f,
@@ -145,19 +103,39 @@ FHitResult UGrabberComponent::GetFirstActorBodyInReach() const
 	GetWorld()->LineTraceSingleByObjectType
 	(
 		OUT Hit,
-		PlayerViewPointLocation,
-		LineTraceEnd,
+		GetPlayerWorldPosition(),
+		GetReachEnd(),
 		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
 		TraceParams
 	);
 
-	AActor* HitActor;
-
-	if (Hit.bBlockingHit)
-	{
-		HitActor = Hit.GetActor();
-		UE_LOG(LogTemp, Warning, TEXT("Trace is hitting %s"), *HitActor->GetName());
-	}
-
 	return Hit;
+}
+
+FVector UGrabberComponent::GetReachEnd() const
+{
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint
+	(
+		OUT PlayerViewPointLocation,
+		OUT PlayerViewPointRotation
+	);
+
+	return PlayerViewPointLocation + Reach * PlayerViewPointRotation.Vector();
+}
+
+FVector UGrabberComponent::GetPlayerWorldPosition() const
+{
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint
+	(
+		OUT PlayerViewPointLocation,
+		OUT PlayerViewPointRotation
+	);
+
+	return PlayerViewPointLocation;
 }
