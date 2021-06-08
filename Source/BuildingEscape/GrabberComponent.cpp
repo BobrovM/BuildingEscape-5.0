@@ -47,9 +47,16 @@ void UGrabberComponent::Grab()
 	//If it hits something, attach a physics handle to it
 	FHitResult HitResult = GetFirstActorBodyInReach();
 	UPrimitiveComponent* ComponentToGrab = HitResult.GetComponent();
+	AActor* ActorHit = HitResult.GetActor();
 
-	if (HitResult.GetActor())
+	if (ActorHit)
 	{
+		if (!PhysicsHandle)
+		{
+			UE_LOG(LogTemp, Error, TEXT("ERROR: Physics handle component is incorrect in %s!"), *GetOwner()->GetName())
+			return;
+		}
+
 		PhysicsHandle->GrabComponentAtLocation
 		(
 			ComponentToGrab,
@@ -61,6 +68,12 @@ void UGrabberComponent::Grab()
 
 void UGrabberComponent::Release()
 {
+	if (!PhysicsHandle)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ERROR: Physics handle component is incorrect in %s!"), *GetOwner()->GetName())
+		return;
+	}
+
 	PhysicsHandle->ReleaseComponent();
 }
 

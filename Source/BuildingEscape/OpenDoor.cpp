@@ -28,9 +28,8 @@ void UOpenDoor::BeginPlay()
 	if (!PressurePlate)
 	{
 		UE_LOG(LogTemp, Error, TEXT("The actor called %s has OpenDoor component attached, but no TriggerVolume set."), *GetOwner()->GetName());
+		return;
 	}
-
-	ActorThatIntersects = GetWorld()->GetFirstPlayerController()->GetPawn();
 }
 
 // Called every frame
@@ -72,6 +71,12 @@ void UOpenDoor::CloseDoor(float DeltaTime)
 float  UOpenDoor::GetTotalMassOfOverlapingActors() const
 {
 	float TotalMass = 0.f;
+
+	if (!PressurePlate)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Actor wanted to get mass from non-existing pressplate, HOW???? Fucker is: %s"), *GetOwner()->GetName());
+		return TotalMass;
+	}
 
 	//store actors
 	TArray<AActor*> OverlapingActors;

@@ -50,8 +50,5 @@ private:
 		float OpenMass = 8.f;
 
 	UPROPERTY(EditAnywhere)
-		ATriggerVolume* PressurePlate;
-
-	UPROPERTY(EditAnywhere)
-		AActor* ActorThatIntersects;
+		ATriggerVolume* PressurePlate = nullptr;
 };
