@@ -21,6 +21,8 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	float GetTotalMassOfOverlapingActors() const;
+	void FindAudioComponent();
+	void FindPressurePlate();
 
 protected:
 	// Called when the game starts
@@ -30,6 +32,7 @@ private:
 	float InitialDoorYaw;
 	float CurrentDoorYaw;
 	float LastTimeDoorOpened = 0.f;
+	bool bOpenSound = true;
 
 	void OpenDoor(float DeltaTime);
 	void CloseDoor(float DeltaTime);
@@ -51,4 +54,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		ATriggerVolume* PressurePlate = nullptr;
+
+	UPROPERTY()
+		UAudioComponent* AudioComponent = nullptr;
 };

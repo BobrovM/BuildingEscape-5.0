@@ -2,6 +2,7 @@
 
 #include "OpenDoor.h"
 #include "Components/PrimitiveComponent.h"
+#include "Components/AudioComponent.h"
 #include "Engine/TriggerVolume.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"
@@ -15,7 +16,24 @@ UOpenDoor::UOpenDoor()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
+}
 
+void UOpenDoor::FindAudioComponent()
+{
+	AudioComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
+
+	if (!AudioComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ERROR: AudioComponent missing in %s!"), *GetOwner()->GetName());
+	}
+}
+
+void UOpenDoor::FindPressurePlate()
+{
+	if (!PressurePlate)
+	{
+		UE_LOG(LogTemp, Error, TEXT("The actor called %s has OpenDoor component attached, but no TriggerVolume set."), *GetOwner()->GetName());
+	}
 }
 
 // Called when the game starts
@@ -25,11 +43,9 @@ void UOpenDoor::BeginPlay()
 	InitialDoorYaw = GetOwner()->GetActorRotation().Yaw;
 	OpenDoorAngle += InitialDoorYaw;
 
-	if (!PressurePlate)
-	{
-		UE_LOG(LogTemp, Error, TEXT("The actor called %s has OpenDoor component attached, but no TriggerVolume set."), *GetOwner()->GetName());
-		return;
-	}
+	FindPressurePlate();
+
+	FindAudioComponent();
 }
 
 // Called every frame
@@ -53,8 +69,14 @@ void UOpenDoor::OpenDoor(float DeltaTime)
 	FRotator CurrentDoorRotation = GetOwner()->GetActorRotation();
 	CurrentDoorYaw = CurrentDoorRotation.Yaw;
 
-	CurrentDoorRotation.Yaw = FMath::FInterpTo(CurrentDoorYaw, OpenDoorAngle, DeltaTime, DoorOpenSpeed);
+	if (bOpenSound)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Open door audio played by: %s"), *GetOwner()->GetName());
+		AudioComponent->Play();
+		bOpenSound = !bOpenSound;
+	}
 
+	CurrentDoorRotation.Yaw = FMath::FInterpTo(CurrentDoorYaw, OpenDoorAngle, DeltaTime, DoorOpenSpeed);
 	GetOwner()->SetActorRotation(CurrentDoorRotation);
 }
 
@@ -62,10 +84,15 @@ void UOpenDoor::CloseDoor(float DeltaTime)
 {
 	FRotator CurrentDoorRotation = GetOwner()->GetActorRotation();
 	CurrentDoorYaw = CurrentDoorRotation.Yaw;
-
 	CurrentDoorRotation.Yaw = FMath::FInterpTo(CurrentDoorYaw, InitialDoorYaw, DeltaTime, DoorShutSpeed);
-
 	GetOwner()->SetActorRotation(CurrentDoorRotation);
+
+	if (!bOpenSound && (CurrentDoorYaw < InitialDoorYaw + 1 && CurrentDoorYaw > InitialDoorYaw - 1))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Open door audio played by: %s"), *GetOwner()->GetName());
+		AudioComponent->Play();
+		bOpenSound = !bOpenSound;
+	}
 }
 
 float  UOpenDoor::GetTotalMassOfOverlapingActors() const

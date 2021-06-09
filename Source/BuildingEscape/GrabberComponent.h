@@ -29,8 +29,10 @@ private:
 	float Reach = 150.f;
 
 	//nullptr to protect from crashing
-	UPhysicsHandleComponent* PhysicsHandle = nullptr;
-	UInputComponent* InputComponent = nullptr;
+	UPROPERTY()
+		UPhysicsHandleComponent* PhysicsHandle = nullptr;
+	UPROPERTY()
+		UInputComponent* InputComponent = nullptr;
 
 	void Grab();
 	void Release();
